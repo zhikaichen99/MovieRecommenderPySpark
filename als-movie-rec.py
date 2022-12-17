@@ -1,7 +1,6 @@
 from pyspark.sql import SparkSession
 from pyspark.sql.types import StructType, StructField, IntegerType, LongType
 from pyspark.ml.recommendation import ALS
-from pyspark.ml.tuning import CrossValidator, ParamGridBuilder
 from pyspark.ml.evaluation import RegressionEvaluator 
 
 import codecs
@@ -35,8 +34,6 @@ moviesSchema = StructType([
 names = loadMovieNames()
 
 data = spark.read.option('sep', '::').schema(moviesSchema).csv('ml-1m/ratings.dat')
-#data = data.drop('timeStamp')
-#data = data.na.drop()
 
 # Splitting data into training and test set
 (training, test) = data.randomSplit([0.7, 0.3], seed = 42)
@@ -77,7 +74,10 @@ userSchema = StructType(
     [StructField("userId", IntegerType(), True)])
 users = spark.createDataFrame([[userID,]], userSchema)
 
-recommendations = model.recommendForUserSubset(users, 10).collect()
+recommendations = model.recommendForUserSubset(users, 10)
+
+
+print('Recommendations for User: ' + str(userID))
 
 for userRecs in recommendations:
     myRecs = userRecs[1]
@@ -85,7 +85,7 @@ for userRecs in recommendations:
         movie = rec[0] # Extracting movie ID
         rating = rec[1]
         movieName = names[movie]
-        print(movieName + str(rating))
+        print(movieName + str(" ") +str(rating))
 
 
 
